@@ -26,7 +26,48 @@ DELETE /hotels/:id - удалить отель
 ##
 ## [![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%=FFFFFF&lines=DB+Structure)](https://git.io/typing-svg)
 ```
-сюда добавить DB
+Table hotels {
+  id serial [pk]
+  name varchar(255) [not null]
+  country varchar(255) [not null]
+  city varchar(255) [not null]
+  street varchar(255) [not null]
+  rating decimal(3,2)
+  capacity int
+  cost int
+  photo_url text
+  additional_info text
+}
+
+Table users {
+  id serial [pk]
+  username varchar(255) [not null]
+  password varchar(255) [not null]
+  first_name varchar(255)
+  last_name varchar(255)
+  phone_number varchar(20)
+  email varchar(255)
+  admin boolean [default: false]
+}
+
+Table orders {
+  id serial [pk]
+  user_id int [ref: > users.id]
+  hotel_id int [ref: > hotels.id]
+  start_date date
+  end_date date
+  creation_date date
+  additional_info text
+}
+
+Table reviews {
+  id serial [pk]
+  user_id int [ref: > users.id]
+  hotel_id int [ref: > hotels.id]
+  rating decimal(3,2)
+  publication_date date
+  comment text
+}
 ```
 
 ## 🤝 Our team

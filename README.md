@@ -12,19 +12,35 @@ Our project is hotel booking. This is a web application created for convenient a
 - **Hotel management**: The administrator can add, edit, and delete hotels from the system.
 - **User Management**: The ability to view the list of users, lock/unlock accounts, view user information.
 - **Review moderation**: The ability to view all reviews, delete inappropriate or offensive reviews.
-
-##
-## [![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%=FFFFFF&lines=Booking+REST+API)](https://git.io/typing-svg)
+## ⚙️ Installation and Configuration
+### Requirements
+Before proceeding with the installation and configuration, make sure that you have the following tools installed:
+- **Go (version 1.11 or higher)**
+- **PostgreSQL**
+### Installation
+1. Clone the repository:
+```bash
+git clone https://github.com/arturkultyshev/lets_go
+```
+2. Go to the project directory:
+``` bash
+cd <project_directory>
+```
+3. Install dependencies:
+``` bash
+go mod tidy
+```
+## 📊 API and Database
+## [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=000000&background=FFFFFF&random=false&width=435&height=30&lines=Booking+REST+API)](https://git.io/typing-svg)
 ```
 POST /hotels - создать отель
 GET /hotels/:id - один отель
 GET /hotels - все отели
 PUT /hotels/:id - обновить информацию по отелю
 DELETE /hotels/:id - удалить отель
-
 ```
 ##
-## [![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%=FFFFFF&lines=DB+Structure)](https://git.io/typing-svg)
+## [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=000000&background=FFFFFF&random=false&width=435&height=30&lines=DB+Structure)](https://git.io/typing-svg)
 ```
 Table hotels {
   id serial [pk]

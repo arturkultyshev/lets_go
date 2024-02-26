@@ -77,9 +77,32 @@ func (app *application) getHotelHandler(w http.ResponseWriter, r *http.Request) 
 	app.respondWithJSON(w, http.StatusOK, hotel)
 }
 
+func (app *application) getHotelsHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse query parameters
+	params := r.URL.Query()
+	fmt.Println(params)
+	// Convert query parameters to map
+	criteria := make(map[string]interface{})
+	for key, values := range params {
+		if len(values) > 0 {
+			criteria[key] = values[0]
+		}
+	}
+
+	hotels, err := app.models.Hotels.GetHotels()
+	if err != nil {
+		fmt.Println(err)
+		app.respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	// Respond with JSON
+	app.respondWithJSON(w, http.StatusOK, hotels)
+}
+
 func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	param := vars["id"]
+	param := vars["hotelId"]
 
 	id, err := strconv.Atoi(param)
 	if err != nil || id < 1 {
@@ -94,16 +117,15 @@ func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	var input struct {
-		Id             int     `json:"id"`
-		Name           *string `json:"name"`
-		Country        *string `json:"country"`
-		City           *string `json:"city"`
-		Street         string  `json:"street"`
-		Rating         float64 `json:"nutritionValue"`
-		Capacity       int     `json:"capacity"`
-		Cost           int     `json:"cost"`
-		PhotoUrl       string  `json:"photo_url"`
-		AdditionalInfo string  `json:"additional_info"`
+		Name           *string  `json:"name"`
+		Country        *string  `json:"country"`
+		City           *string  `json:"city"`
+		Street         *string  `json:"street"`
+		Rating         *float64 `json:"nutritionValue"`
+		Capacity       *int     `json:"capacity"`
+		Cost           *int     `json:"cost"`
+		PhotoUrl       *string  `json:"photo_url"`
+		AdditionalInfo *string  `json:"additional_info"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -124,6 +146,30 @@ func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Reques
 		hotel.City = *input.City
 	}
 
+	if input.Street != nil {
+		hotel.Street = *input.Street
+	}
+
+	if input.Rating != nil {
+		hotel.Rating = *input.Rating
+	}
+
+	if input.Capacity != nil {
+		hotel.Capacity = *input.Capacity
+	}
+
+	if input.Cost != nil {
+		hotel.Cost = *input.Cost
+	}
+
+	if input.PhotoUrl != nil {
+		hotel.PhotoUrl = *input.PhotoUrl
+	}
+
+	if input.AdditionalInfo != nil {
+		hotel.AdditionalInfo = *input.AdditionalInfo
+	}
+
 	err = app.models.Hotels.UpdateHotel(hotel)
 	if err != nil {
 		app.respondWithError(w, http.StatusInternalServerError, "500 Internal Server Error")
@@ -135,7 +181,7 @@ func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Reques
 
 func (app *application) deleteHotelHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	param := vars["Id"]
+	param := vars["hotelId"]
 
 	id, err := strconv.Atoi(param)
 	if err != nil || id < 1 {

@@ -42,6 +42,37 @@ func (m HotelsModel) AddHotel(hotels *Hotels) error {
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&hotels.Id)
 }
 
+func (m HotelsModel) GetHotels() ([]*Hotels, error) {
+	// Construct the SQL query to select all hotels
+	query := `
+        SELECT id, name, city, country, street
+        FROM hotels
+    `
+
+	// Execute the query
+	rows, err := m.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate through the rows and scan the data into Hotels structs
+	var hotels []*Hotels
+	for rows.Next() {
+		var hotel Hotels
+		err := rows.Scan(&hotel.Id, &hotel.Name, &hotel.City, &hotel.Country, &hotel.Street, &hotel.Rating, &hotel.Capacity, &hotel.Cost, &hotel.PhotoUrl, &hotel.AdditionalInfo)
+		if err != nil {
+			return nil, err
+		}
+		hotels = append(hotels, &hotel)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return hotels, nil
+}
+
 func (m HotelsModel) GetHotelById(id int) (*Hotels, error) {
 	// Retrieve a specific menu item based on its ID.
 	query := `
@@ -76,7 +107,7 @@ func (m HotelsModel) UpdateHotel(hotels *Hotels) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return m.DB.QueryRowContext(ctx, query, args...).Scan(&hotels.Name)
+	return m.DB.QueryRowContext(ctx, query, args...).Scan(&hotels.Name, &hotels.City)
 }
 
 func (m HotelsModel) DeleteHotel(id int) error {

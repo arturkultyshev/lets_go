@@ -26,9 +26,10 @@ type application struct {
 
 func main() {
 	var cfg config
-	flag.StringVar(&cfg.port, "port", ":8080", "API server port")
+	// If you change port, change in test also
+	flag.StringVar(&cfg.port, "port", ":8001", "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://postgres:admin@localhost:5432/lets_go?sslmode=disable", "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://postgres:postgres@localhost:5432/lets_go?sslmode=disable", "PostgreSQL DSN")
 	flag.Parse()
 
 	// Connect to DB
@@ -55,6 +56,8 @@ func (app *application) run() {
 	// Menu Singleton
 	// Create a new menu
 	v1.HandleFunc("/hotels", app.createHotelHandler).Methods("POST")
+	// Get hotels
+	v1.HandleFunc("/hotels", app.getHotelsHandler).Methods("GET")
 	// Get a specific hotel
 	v1.HandleFunc("/hotels/{hotelId:[0-9]+}", app.getHotelHandler).Methods("GET")
 	// Update a specific menu

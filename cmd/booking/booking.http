@@ -1,0 +1,59 @@
+### Get hotel by id
+GET localhost:8001/hotels/1
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### Get all hotels
+GET localhost:8001/hotels
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### Create new hotel
+POST localhost:8001/hotels
+Content-Type: application/json
+
+{
+  "name": "testsf",
+  "country": "te3st",
+  "city": "test2",
+  "street": "test2"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 201, "Response status is not 201");
+    });
+%}
+
+### Update Hotel
+PUT localhost:8001/hotels/1
+Content-Type: application/json
+
+{
+  "capacity": 1100,
+  "cost": 322,
+  "additional_info": "balcony, dinner"
+}
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+### Delete Hotel
+DELETE localhost:8001/hotels/2
+
+> {%
+    client.test("Request executed successfully", function () {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}

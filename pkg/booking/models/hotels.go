@@ -60,7 +60,7 @@ func (m HotelsModel) GetHotels() ([]*Hotels, error) {
 	var hotels []*Hotels
 	for rows.Next() {
 		var hotel Hotels
-		err := rows.Scan(&hotel.Id, &hotel.Name, &hotel.City, &hotel.Country, &hotel.Street, &hotel.Rating, &hotel.Capacity, &hotel.Cost, &hotel.PhotoUrl, &hotel.AdditionalInfo)
+		err := rows.Scan(&hotel.Id, &hotel.Name, &hotel.City, &hotel.Country, &hotel.Street)
 		if err != nil {
 			return nil, err
 		}

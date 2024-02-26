@@ -78,17 +78,6 @@ func (app *application) getHotelHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) getHotelsHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse query parameters
-	params := r.URL.Query()
-	fmt.Println(params)
-	// Convert query parameters to map
-	criteria := make(map[string]interface{})
-	for key, values := range params {
-		if len(values) > 0 {
-			criteria[key] = values[0]
-		}
-	}
-
 	hotels, err := app.models.Hotels.GetHotels()
 	if err != nil {
 		fmt.Println(err)

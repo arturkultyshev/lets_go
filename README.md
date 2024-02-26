@@ -31,17 +31,16 @@ cd <project_directory>
 go mod tidy
 ```
 ## 📊 API and Database
-## [![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%=FFFFFF&lines=Booking+REST+API)](https://git.io/typing-svg)
+## [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=000000&background=FFFFFF&random=false&width=435&height=30&lines=Booking+REST+API)](https://git.io/typing-svg)
 ```
 POST /hotels - создать отель
 GET /hotels/:id - один отель
 GET /hotels - все отели
 PUT /hotels/:id - обновить информацию по отелю
 DELETE /hotels/:id - удалить отель
-
 ```
-## 
-## [![Typing SVG](https://readme-typing-svg.herokuapp.com?color=%=FFFFFF&lines=DB+Structure)](https://git.io/typing-svg)
+##
+## [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&color=000000&background=FFFFFF&random=false&width=435&height=30&lines=DB+Structure)](https://git.io/typing-svg)
 ```
 Table hotels {
   id serial [pk]

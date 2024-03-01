@@ -19,7 +19,7 @@ Table users {
   last_name varchar(255)
   phone_number varchar(20)
   email varchar(255)
-  admin boolean [default: false]
+  isAdmin boolean [default: false]
 }
 
 Table orders {

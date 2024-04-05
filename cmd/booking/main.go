@@ -4,11 +4,13 @@ import (
 	"booking/pkg/booking/models"
 	"database/sql"
 	"flag"
+	"fmt"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
-
-	_ "github.com/lib/pq"
+	"os"
 )
 
 type config struct {
@@ -25,11 +27,17 @@ type application struct {
 }
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+		return
+	}
+
 	var cfg config
 	// If you change port, change in test also
 	flag.StringVar(&cfg.port, "port", ":8001", "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
-	flag.StringVar(&cfg.db.dsn, "db-dsn", "postgres://postgres:postgres@localhost:5432/lets_go?sslmode=disable", "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("DATABASE_URL"), "PostgreSQL DSN")
 	flag.Parse()
 
 	// Connect to DB

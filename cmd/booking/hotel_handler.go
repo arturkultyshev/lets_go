@@ -2,6 +2,7 @@ package main
 
 import (
 	"booking/pkg/booking/models"
+	"booking/pkg/booking/validator"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -20,7 +21,6 @@ func (app *application) respondWithJSON(w http.ResponseWriter, code int, payload
 		app.respondWithError(w, http.StatusInternalServerError, "500 Internal Server Error")
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(response)
@@ -78,7 +78,38 @@ func (app *application) getHotelHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *application) getHotelsHandler(w http.ResponseWriter, r *http.Request) {
-	hotels, err := app.models.Hotels.GetHotels()
+	var input struct {
+		Name     string
+		CostFrom int
+		CostTo   int
+		models.Filters
+	}
+
+	v := validator.New()
+	qs := r.URL.Query()
+
+	input.Name = app.readStrings(qs, "name", "")
+	input.CostFrom = app.readInt(qs, "nutritionFrom", 0, v)
+	input.CostTo = app.readInt(qs, "nutritionTo", 0, v)
+
+	input.Filters.Page = app.readInt(qs, "page", 1, v)
+	input.Filters.PageSize = app.readInt(qs, "page_size", 5, v)
+
+	input.Filters.Sort = app.readStrings(qs, "sort", "id")
+
+	input.Filters.SortSafeList = []string{
+		// ascending sort values
+		"id", "name", "cost",
+		// descending sort values
+		"-id", "-name", "-cost",
+	}
+
+	//if models.ValidateFilters(v, input.Filters); !v.Valid() {
+	//	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
+	//	return
+	//}
+	hotels, _, err := app.models.Hotels.GetAll(input.Name, input.CostFrom, input.CostTo, input.Filters)
+
 	if err != nil {
 		fmt.Println(err)
 		app.respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
@@ -185,16 +216,4 @@ func (app *application) deleteHotelHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	app.respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
-}
-
-func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst interface{}) error {
-	dec := json.NewDecoder(r.Body)
-	dec.DisallowUnknownFields()
-
-	err := dec.Decode(dst)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

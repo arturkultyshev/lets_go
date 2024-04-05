@@ -42,35 +42,71 @@ func (m HotelsModel) AddHotel(hotels *Hotels) error {
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&hotels.Id)
 }
 
-func (m HotelsModel) GetHotels() ([]*Hotels, error) {
-	// Construct the SQL query to select all hotels
-	query := `
-        SELECT id, name, city, country, street
-        FROM hotels
-    `
+func (m HotelsModel) GetAll(name string, from, to int, filters Filters) ([]*Hotels, Metadata, error) {
 
-	// Execute the query
-	rows, err := m.DB.Query(query)
+	// Retrieve all menu items from the database.
+	query := fmt.Sprintf(
+		`
+		SELECT count(*) OVER(), id, name, country, city, street, capacity, cost
+		FROM hotels
+		WHERE (LOWER(name) = LOWER($1) OR $1 = '')
+		AND (cost >= $2 OR $2 = 0)
+		AND (cost <= $3 OR $3 = 0)
+		ORDER BY %s %s, id ASC
+		LIMIT $4 OFFSET $5
+		`,
+		filters.sortColumn(), filters.sortDirection())
+
+	// Create a context with a 3-second timeout.
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// Organize our four placeholder parameter values in a slice.
+	args := []interface{}{name, from, to, filters.limit(), filters.offset()}
+
+	// log.Println(query, title, from, to, filters.limit(), filters.offset())
+	// Use QueryContext to execute the query. This returns a sql.Rows result set containing
+	// the result.
+	rows, err := m.DB.QueryContext(ctx, query, args...)
 	if err != nil {
-		return nil, err
+		return nil, Metadata{}, err
 	}
-	defer rows.Close()
 
-	// Iterate through the rows and scan the data into Hotels structs
+	// Importantly, defer a call to rows.Close() to ensure that the result set is closed
+	// before GetAll returns.
+	defer func() {
+		if err := rows.Close(); err != nil {
+			m.ErrorLog.Println(err)
+		}
+	}()
+
+	// Declare a totalRecords variable
+	totalRecords := 0
+
 	var hotels []*Hotels
 	for rows.Next() {
 		var hotel Hotels
-		err := rows.Scan(&hotel.Id, &hotel.Name, &hotel.City, &hotel.Country, &hotel.Street)
+		err := rows.Scan(&totalRecords, &hotel.Id, &hotel.Name, &hotel.Country, &hotel.City, &hotel.Street, &hotel.Cost, &hotel.Capacity)
 		if err != nil {
-			return nil, err
+			return nil, Metadata{}, err
 		}
+
+		// Add the Movie struct to the slice
 		hotels = append(hotels, &hotel)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
+
+	// When the rows.Next() loop has finished, call rows.Err() to retrieve any error
+	// that was encountered during the iteration.
+	if err = rows.Err(); err != nil {
+		return nil, Metadata{}, err
 	}
 
-	return hotels, nil
+	// Generate a Metadata struct, passing in the total record count and pagination parameters
+	// from the client.
+	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
+
+	// If everything went OK, then return the slice of the movies and metadata.
+	return hotels, metadata, nil
 }
 
 func (m HotelsModel) GetHotelById(id int) (*Hotels, error) {

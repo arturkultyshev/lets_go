@@ -89,8 +89,8 @@ func (app *application) getHotelsHandler(w http.ResponseWriter, r *http.Request)
 	qs := r.URL.Query()
 
 	input.Name = app.readStrings(qs, "name", "")
-	input.CostFrom = app.readInt(qs, "nutritionFrom", 0, v)
-	input.CostTo = app.readInt(qs, "nutritionTo", 0, v)
+	input.CostFrom = app.readInt(qs, "costFrom", 0, v)
+	input.CostTo = app.readInt(qs, "costTo", 0, v)
 
 	input.Filters.Page = app.readInt(qs, "page", 1, v)
 	input.Filters.PageSize = app.readInt(qs, "page_size", 5, v)

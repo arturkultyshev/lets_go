@@ -86,7 +86,7 @@ func (m HotelsModel) GetAll(name string, from, to int, filters Filters) ([]*Hote
 	var hotels []*Hotels
 	for rows.Next() {
 		var hotel Hotels
-		err := rows.Scan(&totalRecords, &hotel.Id, &hotel.Name, &hotel.Country, &hotel.City, &hotel.Street, &hotel.Cost, &hotel.Capacity)
+		err := rows.Scan(&totalRecords, &hotel.Id, &hotel.Name, &hotel.Country, &hotel.City, &hotel.Street, &hotel.Capacity, &hotel.Cost)
 		if err != nil {
 			return nil, Metadata{}, err
 		}

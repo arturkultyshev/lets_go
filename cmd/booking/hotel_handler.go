@@ -5,9 +5,10 @@ import (
 	"booking/pkg/booking/validator"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 func (app *application) respondWithError(w http.ResponseWriter, code int, message string) {
@@ -67,7 +68,6 @@ func (app *application) getHotelHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	hotel, err := app.models.Hotels.GetHotelById(id)
-	fmt.Println(hotel)
 	if err != nil {
 		fmt.Println(err, hotel)
 		app.respondWithError(w, http.StatusNotFound, "404 Not Found")

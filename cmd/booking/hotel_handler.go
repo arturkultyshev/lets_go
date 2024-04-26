@@ -1,14 +1,14 @@
 package main
 
 import (
-	"booking/pkg/booking/models"
+	"booking/pkg/booking/model"
 	"booking/pkg/booking/validator"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 func (app *application) respondWithError(w http.ResponseWriter, code int, message string) {
@@ -41,7 +41,7 @@ func (app *application) createHotelHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	hotels := &models.Hotels{
+	hotels := &model.Hotels{
 		Name:    input.Name,
 		Country: input.Country,
 		City:    input.City,
@@ -82,7 +82,7 @@ func (app *application) getHotelsHandler(w http.ResponseWriter, r *http.Request)
 		Name     string
 		CostFrom int
 		CostTo   int
-		models.Filters
+		model.Filters
 	}
 
 	v := validator.New()
@@ -104,10 +104,10 @@ func (app *application) getHotelsHandler(w http.ResponseWriter, r *http.Request)
 		"-id", "-name", "-cost",
 	}
 
-	//if models.ValidateFilters(v, input.Filters); !v.Valid() {
-	//	app.errorResponse(w, r, http.StatusUnprocessableEntity, errors)
-	//	return
-	//}
+	if model.ValidateFilters(v, input.Filters); !v.Valid() {
+		app.errorResponse(w, r, http.StatusUnprocessableEntity, v.Errors)
+		return
+	}
 	hotels, _, err := app.models.Hotels.GetAll(input.Name, input.CostFrom, input.CostTo, input.Filters)
 
 	if err != nil {
@@ -200,20 +200,22 @@ func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (app *application) deleteHotelHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	param := vars["hotelId"]
-
-	id, err := strconv.Atoi(param)
-	if err != nil || id < 1 {
-		app.respondWithError(w, http.StatusBadRequest, "Invalid menu ID")
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	err = app.models.Hotels.DeleteHotel(id)
+
 	if err != nil {
-		app.respondWithError(w, http.StatusInternalServerError, "500 Internal Server Error")
+		switch {
+		case errors.Is(err, model.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
-
-	app.respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+	app.writeJSON(w, http.StatusOK, envelope{"message": "success"}, nil)
 }

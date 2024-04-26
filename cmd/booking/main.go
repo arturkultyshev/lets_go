@@ -1,21 +1,28 @@
 package main
 
 import (
-	"booking/pkg/booking/models"
+	"booking/pkg/booking/model"
+	"booking/pkg/booking/vcs"
+	"booking/pkg/jsonlog"
 	"database/sql"
 	"flag"
 	"fmt"
-	"log"
-	"net/http"
+	_ "log"
+	_ "net/http"
 	"os"
+	"sync"
 
-	"github.com/gorilla/mux"
+	_ "github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
+var (
+	version = vcs.Version()
+)
+
 type config struct {
-	port string
+	port int
 	env  string
 	db   struct {
 		dsn string
@@ -24,7 +31,9 @@ type config struct {
 
 type application struct {
 	config config
-	models models.Models
+	models model.Models
+	logger *jsonlog.Logger
+	wg     sync.WaitGroup
 }
 
 func main() {
@@ -43,52 +52,46 @@ func main() {
 		os.Getenv("POSTGRES_PORT"),
 		os.Getenv("POSTGRES_DB"))
 
-	flag.StringVar(&cfg.port, "port", ":"+os.Getenv("APPLICATION_PORT"), "API server port")
+	flag.IntVar(&cfg.port, "port", 8001, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "Environment (development|staging|production)")
 	flag.StringVar(&cfg.db.dsn, "db-dsn", DATABASE_URL, "PostgreSQL DSN")
 	flag.Parse()
 
+	logger := jsonlog.NewLogger(os.Stdout, jsonlog.LevelInfo)
+
 	// Connect to DB
 	db, err := openDB(cfg)
 	if err != nil {
-		log.Fatal(err)
+		logger.PrintError(err, nil)
 		return
 	}
-	defer db.Close()
+	// Defer a call to db.Close() so that the connection pool is closed before the main()
+	// function exits.
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.PrintFatal(err, nil)
+		}
+	}()
 
 	app := &application{
 		config: cfg,
-		models: models.NewModels(db),
+		models: model.NewModels(db),
+		logger: logger,
 	}
 
-	app.run()
-}
-
-func (app *application) run() {
-	r := mux.NewRouter()
-
-	v1 := r.PathPrefix("/").Subrouter()
-
-	// Menu Singleton
-	// Create a new menu
-	v1.HandleFunc("/hotels", app.createHotelHandler).Methods("POST")
-	// Get hotels
-	v1.HandleFunc("/hotels", app.getHotelsHandler).Methods("GET")
-	// Get a specific hotel
-	v1.HandleFunc("/hotels/{hotelId:[0-9]+}", app.getHotelHandler).Methods("GET")
-	// Update a specific menu
-	v1.HandleFunc("/hotels/{hotelId:[0-9]+}", app.updateHotelHandler).Methods("PUT")
-	// Delete a specific menu
-	v1.HandleFunc("/hotels/{hotelId:[0-9]+}", app.deleteHotelHandler).Methods("DELETE")
-
-	log.Printf("Starting server on %s\n", app.config.port)
-	err := http.ListenAndServe(app.config.port, r)
-	log.Fatal(err)
+	// Call app.server() to start the server.
+	if err := app.serve(); err != nil {
+		logger.PrintFatal(err, nil)
+	}
 }
 
 func openDB(cfg config) (*sql.DB, error) {
 	// Use sql.Open() to create an empty connection pool, using the DSN from the config // struct.
 	db, err := sql.Open("postgres", cfg.db.dsn)
+	if err != nil {
+		return nil, err
+	}
+	err = db.Ping()
 	if err != nil {
 		return nil, err
 	}

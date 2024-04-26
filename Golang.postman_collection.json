@@ -1,0 +1,461 @@
+{
+	"info": {
+		"_postman_id": "31b37fc0-8ecc-40fe-b406-b98be9041281",
+		"name": "Golang",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29271381"
+	},
+	"item": [
+		{
+			"name": "Create order",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userid\": 1,\r\n    \"hotelid\": 1,\r\n    \"start_date\": \"2022-01-01T00:00:00Z\",\r\n    \"end_date\": \"2022-01-04T00:00:00Z\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/orders/11",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"orders",
+						"11"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get order by user",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userid\": 1,\r\n    \"hotelid\": 1,\r\n    \"start_date\": \"2022-01-01T00:00:00Z\",\r\n    \"end_date\": \"2022-01-04T00:00:00Z\",\r\n    \"additionalinfo\": \"No additional info\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/orders/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"orders",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create hotel without all parameters",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Hotel California\",\r\n    \"country\": \"USA\",\r\n    \"city\": \"Los Angeles\",\r\n    \"street\": \"Sunset Boulevard\",\r\n    \"photo_url\": \"http://example.com/photo.jpg\",\r\n    \"additional_info\": \"This is some additional info\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/hotels",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"hotels"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Hotels with parameters",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8001/hotels?sort=-name&page=3&page_size=3",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"hotels"
+					],
+					"query": [
+						{
+							"key": "sort",
+							"value": "-name"
+						},
+						{
+							"key": "page",
+							"value": "3"
+						},
+						{
+							"key": "page_size",
+							"value": "3"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Hotel by ID",
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8001/hotels/2",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"hotels",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update hotel cost",
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"cost\": 500}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/hotels/22",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"hotels",
+						"22"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Hotel",
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"cost\": 500}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/hotels/23",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"hotels",
+						"23"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create review",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userid\": 1,\r\n    \"hotelid\": 22,\r\n    \"rating\": 4.5,\r\n    \"comment\": \"Great hotel, excellent service!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/hotels/reviews",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"hotels",
+						"reviews"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get review by Hotel",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userid\": 1,\r\n    \"hotelid\": 22,\r\n    \"rating\": 4.5,\r\n    \"comment\": \"Great hotel, excellent service!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/hotels/reviews/22",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"hotels",
+						"reviews",
+						"22"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete review",
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userid\": 1,\r\n    \"hotelid\": 22,\r\n    \"rating\": 4.5,\r\n    \"comment\": \"Great hotel, excellent service!\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/hotels/reviews/22",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"hotels",
+						"reviews",
+						"22"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete order",
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userid\": 1,\r\n    \"hotelid\": 1,\r\n    \"start_date\": \"2022-01-01T00:00:00Z\",\r\n    \"end_date\": \"2022-01-04T00:00:00Z\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/orders/11",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"orders",
+						"11"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create order without specify additional_info",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"userid\": 1,\r\n    \"hotelid\": 1,\r\n    \"start_date\": \"2022-01-01T00:00:00Z\",\r\n    \"end_date\": \"2022-01-04T00:00:00Z\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/orders",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update order",
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"additional_info\": \"extra bed\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/orders/1",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"orders",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register user",
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"name\": \"test\", \"email\": \"test@test.com\", \"password\": \"testtest\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/users/register",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"users",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login user",
+			"request": {
+				"auth": {
+					"type": "inherit"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"email\": \"test@test.com\", \"password\": \"testtest\"}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8001/users/login",
+					"host": [
+						"localhost"
+					],
+					"port": "8001",
+					"path": [
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

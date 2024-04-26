@@ -31,11 +31,11 @@ type HotelsModel struct {
 func (m HotelsModel) AddHotel(hotels *Hotels) error {
 	// Insert a new menu item into the database.
 	query := `
-		INSERT INTO hotels (name, country, city, street) 
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO hotels (name, country, city, street, capacity, cost, photo_url, additional_info) 
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id
 		`
-	args := []interface{}{hotels.Name, hotels.Country, hotels.City, hotels.Street}
+	args := []interface{}{hotels.Name, hotels.Country, hotels.City, hotels.Street, hotels.Capacity, hotels.Cost, hotels.PhotoUrl, hotels.AdditionalInfo}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
@@ -47,7 +47,7 @@ func (m HotelsModel) GetAll(name string, from, to int, filters Filters) ([]*Hote
 	// Retrieve all menu items from the database.
 	query := fmt.Sprintf(
 		`
-		SELECT count(*) OVER(), id, name, country, city, street, capacity, cost
+		SELECT count(*) OVER(), id, name, country, city, street, capacity, cost, photo_url, additional_info
 		FROM hotels
 		WHERE (LOWER(name) = LOWER($1) OR $1 = '')
 		AND (cost >= $2 OR $2 = 0)
@@ -86,7 +86,7 @@ func (m HotelsModel) GetAll(name string, from, to int, filters Filters) ([]*Hote
 	var hotels []*Hotels
 	for rows.Next() {
 		var hotel Hotels
-		err := rows.Scan(&totalRecords, &hotel.Id, &hotel.Name, &hotel.Country, &hotel.City, &hotel.Street, &hotel.Capacity, &hotel.Cost)
+		err := rows.Scan(&totalRecords, &hotel.Id, &hotel.Name, &hotel.Country, &hotel.City, &hotel.Street, &hotel.Capacity, &hotel.Cost, &hotel.PhotoUrl, &hotel.AdditionalInfo)
 		if err != nil {
 			return nil, Metadata{}, err
 		}
@@ -112,7 +112,7 @@ func (m HotelsModel) GetAll(name string, from, to int, filters Filters) ([]*Hote
 func (m HotelsModel) GetHotelById(id int) (*Hotels, error) {
 	// Retrieve a specific menu item based on its ID.
 	query := `
-		SELECT id, name, country, city, street
+		SELECT id, name, country, city, street, capacity, cost, photo_url, additional_info
 		FROM hotels
 		WHERE id = $1
 		`
@@ -121,7 +121,7 @@ func (m HotelsModel) GetHotelById(id int) (*Hotels, error) {
 	defer cancel()
 
 	row := m.DB.QueryRowContext(ctx, query, id)
-	err := row.Scan(&hotels.Id, &hotels.Name, &hotels.Country, &hotels.City, &hotels.Street)
+	err := row.Scan(&hotels.Id, &hotels.Name, &hotels.Country, &hotels.City, &hotels.Street, &hotels.Capacity, &hotels.Cost, &hotels.PhotoUrl, &hotels.AdditionalInfo)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, fmt.Errorf("no hotel found with ID: %d", id)
@@ -135,11 +135,11 @@ func (m HotelsModel) UpdateHotel(hotels *Hotels) error {
 	// Update a specific menu item in the database.
 	query := `
 		UPDATE hotels
-		SET capacity = $2, cost = $3, additional_info = $4
+		SET name = $2, country = $3, city = $4, street = $5, capacity = $6, cost = $7, additional_info = $8
 		WHERE id = $1
 		RETURNING name, city
 		`
-	args := []interface{}{hotels.Id, hotels.Capacity, hotels.Cost, hotels.AdditionalInfo}
+	args := []interface{}{hotels.Id, hotels.Name, hotels.Country, hotels.City, hotels.Street, hotels.Capacity, hotels.Cost, hotels.AdditionalInfo}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 

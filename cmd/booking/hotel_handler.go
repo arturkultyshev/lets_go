@@ -3,78 +3,66 @@ package main
 import (
 	"booking/pkg/booking/model"
 	"booking/pkg/booking/validator"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
-	"strconv"
 )
-
-func (app *application) respondWithError(w http.ResponseWriter, code int, message string) {
-	app.respondWithJSON(w, code, map[string]string{"error": message})
-}
-
-func (app *application) respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, err := json.Marshal(payload)
-
-	if err != nil {
-		app.respondWithError(w, http.StatusInternalServerError, "500 Internal Server Error")
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	w.Write(response)
-}
 
 func (app *application) createHotelHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Name    string `json:"name"`
-		Country string `json:"country"`
-		City    string `json:"city"`
-		Street  string `json:"street"`
+		Name           string `json:"name"`
+		Country        string `json:"country"`
+		City           string `json:"city"`
+		Street         string `json:"street"`
+		Capacity       int    `json:"capacity,omitempty"`
+		Cost           int    `json:"cost,omitempty"`
+		PhotoUrl       string `json:"photo_url,omitempty"`
+		AdditionalInfo string `json:"additional_info,omitempty"`
 	}
 
 	err := app.readJSON(w, r, &input)
 	if err != nil {
-		app.respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		app.errorResponse(w, r, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 
 	hotels := &model.Hotels{
-		Name:    input.Name,
-		Country: input.Country,
-		City:    input.City,
-		Street:  input.Street,
+		Name:           input.Name,
+		Country:        input.Country,
+		City:           input.City,
+		Street:         input.Street,
+		Capacity:       input.Capacity,
+		Cost:           input.Cost,
+		PhotoUrl:       input.PhotoUrl,
+		AdditionalInfo: input.AdditionalInfo,
 	}
 
 	err = app.models.Hotels.AddHotel(hotels)
 	if err != nil {
-		app.respondWithError(w, http.StatusInternalServerError, "500 Internal Server Error")
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	app.respondWithJSON(w, http.StatusCreated, hotels)
+	app.writeJSON(w, http.StatusCreated, envelope{"hotel": hotels}, nil)
 }
 
 func (app *application) getHotelHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	param := vars["hotelId"]
-
-	id, err := strconv.Atoi(param)
-	if err != nil || id < 1 {
-		app.respondWithError(w, http.StatusBadRequest, "Invalid menu ID")
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
 		return
 	}
-
 	hotel, err := app.models.Hotels.GetHotelById(id)
 	if err != nil {
-		fmt.Println(err, hotel)
-		app.respondWithError(w, http.StatusNotFound, "404 Not Found")
+		switch {
+		case errors.Is(err, model.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
-	app.respondWithJSON(w, http.StatusOK, hotel)
+	app.writeJSON(w, http.StatusOK, envelope{"hotel": hotel}, nil)
 }
 
 func (app *application) getHotelsHandler(w http.ResponseWriter, r *http.Request) {
@@ -108,31 +96,32 @@ func (app *application) getHotelsHandler(w http.ResponseWriter, r *http.Request)
 		app.errorResponse(w, r, http.StatusUnprocessableEntity, v.Errors)
 		return
 	}
-	hotels, _, err := app.models.Hotels.GetAll(input.Name, input.CostFrom, input.CostTo, input.Filters)
+
+	hotels, metadata, err := app.models.Hotels.GetAll(input.Name, input.CostFrom, input.CostTo, input.Filters)
 
 	if err != nil {
-		fmt.Println(err)
-		app.respondWithError(w, http.StatusInternalServerError, "Internal Server Error")
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	// Respond with JSON
-	app.respondWithJSON(w, http.StatusOK, hotels)
+	app.writeJSON(w, http.StatusOK, envelope{"hotels": hotels, "metadata": metadata}, nil)
 }
 
 func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	param := vars["hotelId"]
-
-	id, err := strconv.Atoi(param)
-	if err != nil || id < 1 {
-		app.respondWithError(w, http.StatusBadRequest, "Invalid menu ID")
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.notFoundResponse(w, r)
 		return
 	}
 
 	hotel, err := app.models.Hotels.GetHotelById(id)
 	if err != nil {
-		app.respondWithError(w, http.StatusNotFound, "404 Not Found")
+		switch {
+		case errors.Is(err, model.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
@@ -150,7 +139,7 @@ func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Reques
 
 	err = app.readJSON(w, r, &input)
 	if err != nil {
-		app.respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -171,7 +160,12 @@ func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	if input.Rating != nil {
-		hotel.Rating = *input.Rating
+		avgRating, err := app.models.Reviews.GetAverageRating(hotel.Id)
+		if err != nil {
+			hotel.Rating = 0
+		} else {
+			hotel.Rating = avgRating
+		}
 	}
 
 	if input.Capacity != nil {
@@ -192,11 +186,16 @@ func (app *application) updateHotelHandler(w http.ResponseWriter, r *http.Reques
 
 	err = app.models.Hotels.UpdateHotel(hotel)
 	if err != nil {
-		app.respondWithError(w, http.StatusInternalServerError, "500 Internal Server Error")
+		switch {
+		case errors.Is(err, model.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 
-	app.respondWithJSON(w, http.StatusOK, hotel)
+	app.writeJSON(w, http.StatusOK, envelope{"hotel": hotel}, nil)
 }
 
 func (app *application) deleteHotelHandler(w http.ResponseWriter, r *http.Request) {
@@ -217,5 +216,5 @@ func (app *application) deleteHotelHandler(w http.ResponseWriter, r *http.Reques
 		}
 		return
 	}
-	app.writeJSON(w, http.StatusOK, envelope{"message": "success"}, nil)
+	app.writeJSON(w, http.StatusOK, envelope{"message": "hotel deleted"}, nil)
 }

@@ -21,19 +21,33 @@ func (app *application) routes() http.Handler {
 	// TODO: Add a healthcheck endpoint to the router.
 	// r.HandleFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 
-	v1 := r.PathPrefix("/").Subrouter()
+	hotels1 := r.PathPrefix("/hotels").Subrouter()
 
-	// Menu Singleton
-	// Create a new menu
-	v1.HandleFunc("/hotels", app.createHotelHandler).Methods("POST")
+	// Create a new hotel
+	hotels1.HandleFunc("", app.createHotelHandler).Methods("POST")
 	// Get hotels
-	v1.HandleFunc("/hotels", app.getHotelsHandler).Methods("GET")
-	// Get a specific hotel
-	v1.HandleFunc("/hotels/{hotelId:[0-9]+}", app.getHotelHandler).Methods("GET")
-	// Update a specific menu
-	v1.HandleFunc("/hotels/{hotelId:[0-9]+}", app.updateHotelHandler).Methods("PUT")
-	// Delete a specific menu
-	v1.HandleFunc("/hotels/{hotelId:[0-9]+}", app.deleteHotelHandler).Methods("DELETE")
+	hotels1.HandleFunc("", app.getHotelsHandler).Methods("GET")
+	// Get a specific hotel, update a specific hotel, and delete a specific hotel
+	hotels1.HandleFunc("/{id:[0-9]+}", app.getHotelHandler).Methods("GET")
+	hotels1.HandleFunc("/{id:[0-9]+}", app.updateHotelHandler).Methods("PUT")
+	hotels1.HandleFunc("/{id:[0-9]+}", app.deleteHotelHandler).Methods("DELETE")
+	// Create a new review
+	hotels1.HandleFunc("/reviews", app.createReviewHandler).Methods("POST")
+	// Get reviews
+	hotels1.HandleFunc("/reviews/{id:[0-9]+}", app.getReviewsByHotelHandler).Methods("GET")
+	// Update review
+	hotels1.HandleFunc("/reviews/{id:[0-9]+}", app.updateReviewHandler).Methods("PUT")
+	// Delete review
+	hotels1.HandleFunc("/reviews/{id:[0-9]+}", app.deleteReviewHandler).Methods("DELETE")
+
+	orders1 := r.PathPrefix("/orders").Subrouter()
+	// Create a new order
+	orders1.HandleFunc("", app.createOrderHandler).Methods("POST")
+	// Get orders by user
+	orders1.HandleFunc("/{id:[0-9]+}", app.getOrdersHandler).Methods("GET")
+	// Get a specific order, update a specific order, and delete a specific order
+	orders1.HandleFunc("/{id:[0-9]+}", app.updateOrderHandler).Methods("PUT")
+	orders1.HandleFunc("/{id:[0-9]+}", app.deleteOrderHandler).Methods("DELETE")
 
 	users1 := r.PathPrefix("/users/").Subrouter()
 	// User handlers with Authentication

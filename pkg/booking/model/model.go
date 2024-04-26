@@ -8,6 +8,8 @@ import (
 )
 
 type Models struct {
+	Reviews     ReviewsModel
+	Orders      OrdersModel
 	Hotels      HotelsModel
 	Users       UserModel
 	Tokens      TokenModel
@@ -42,6 +44,16 @@ func NewModels(db *sql.DB) Models {
 			ErrorLog: errorLog,
 		},
 		Permissions: PermissionModel{
+			DB:       db,
+			InfoLog:  infoLog,
+			ErrorLog: errorLog,
+		},
+		Orders: OrdersModel{
+			DB:       db,
+			InfoLog:  infoLog,
+			ErrorLog: errorLog,
+		},
+		Reviews: ReviewsModel{
 			DB:       db,
 			InfoLog:  infoLog,
 			ErrorLog: errorLog,

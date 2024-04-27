@@ -38,7 +38,7 @@ func (m OrdersModel) AddOrder(order *Orders) error {
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&order.Id, &order.HotelId, &order.UserId, &order.StartDate, &order.EndDate, &order.CreationDate, &order.AdditionalInfo)
 }
 
-func (m OrdersModel) GetOrders(userId int) ([]*Orders, error) {
+func (m OrdersModel) GetOrders(userId int64) ([]*Orders, error) {
 	query := `
 		SELECT id, hotel_id, user_id, start_date, end_date, created_at, additional_info
 		FROM orders

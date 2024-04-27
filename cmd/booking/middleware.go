@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"booking/pkg/booking/model"
@@ -108,8 +109,24 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 	return app.requireAuthenticatedUser(fn)
 }
 
-func (app *application) requirePermissions(code string, next http.HandlerFunc) http.HandlerFunc {
+func (app *application) requirePermissions(permission string, next http.HandlerFunc) http.HandlerFunc {
 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Extract the user ID from the Authorization header
+		userID, err := app.getIDFromHeader(r)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		// Split the permission string into a slice
+		parts := strings.Split(permission, ":")
+
+		// Append the user ID to the slice
+		parts = []string{parts[0], strconv.FormatInt(userID, 10), parts[1]}
+
+		// Join the slice back into a string
+		code := strings.Join(parts, ":")
+
 		// Retrieve the user from the request context.
 		user := app.contextGetUser(r)
 
@@ -131,6 +148,5 @@ func (app *application) requirePermissions(code string, next http.HandlerFunc) h
 		next.ServeHTTP(w, r)
 	})
 
-	// Wrap this with the requireActivatedUser middleware before returning
 	return app.requireActivatedUser(fn)
 }

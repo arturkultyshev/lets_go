@@ -2,7 +2,6 @@ package main
 
 import (
 	"booking/pkg/booking/model"
-	"booking/pkg/booking/vcs"
 	"booking/pkg/jsonlog"
 	"database/sql"
 	"flag"
@@ -15,10 +14,6 @@ import (
 	_ "github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-)
-
-var (
-	version = vcs.Version()
 )
 
 type config struct {

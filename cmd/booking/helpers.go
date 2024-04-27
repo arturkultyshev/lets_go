@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"booking/pkg/booking/validator"
+
 	"github.com/gorilla/mux"
 )
 
@@ -200,4 +201,39 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 
 	// Otherwise, return the converted integer value.
 	return i
+}
+
+func (app *application) getIDFromHeader(r *http.Request) (int64, error) {
+	tokenStr := r.Header.Get("Authorization")
+	if tokenStr == "" {
+		return 0, fmt.Errorf("authorization header missing")
+	}
+
+	// Remove the "Bearer " prefix from the token string
+	if len(tokenStr) > 7 && strings.ToUpper(tokenStr[0:7]) == "BEARER " {
+		tokenStr = tokenStr[7:]
+	}
+
+	userID, err := app.models.Tokens.GetUserIDFromToken(tokenStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
+}
+
+func (app *application) addPermissionAndAssignToUser(userID int64, objectID int64, objectType string, action string) error {
+	permission := fmt.Sprintf("%s:%d:%s", objectType, objectID, action)
+
+	err := app.models.Permissions.AddPermission(permission)
+	if err != nil {
+		return err
+	}
+
+	err = app.models.Permissions.AddForUser(userID, permission)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

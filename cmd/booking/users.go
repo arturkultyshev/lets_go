@@ -65,8 +65,15 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+	permissions := []string{"hotel:write", "order:write", "review:write"}
+	for _, permission := range permissions {
+		err = app.models.Permissions.AddForUser(user.ID, permission)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
 
-	err = app.models.Permissions.AddForUser(user.ID, "menus:read")
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

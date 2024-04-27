@@ -9,7 +9,6 @@ import (
 
 func (app *application) createReviewHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		UserId  int     `json:"userid"`
 		HotelId int     `json:"hotelid"`
 		Rating  float64 `json:"rating"`
 		Comment string  `json:"comment"`
@@ -21,8 +20,14 @@ func (app *application) createReviewHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	userID, err := app.getIDFromHeader(r)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	review := &model.Reviews{
-		UserId:          input.UserId,
+		UserId:          int(userID),
 		HotelId:         input.HotelId,
 		Rating:          input.Rating,
 		Comment:         input.Comment,
@@ -33,6 +38,16 @@ func (app *application) createReviewHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
+	}
+
+	actions := []string{"update", "delete"}
+
+	for _, action := range actions {
+		err = app.addPermissionAndAssignToUser(userID, int64(review.Id), "review", action)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
 	}
 
 	app.writeJSON(w, http.StatusCreated, envelope{"review": review}, nil)

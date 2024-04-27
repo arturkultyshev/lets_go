@@ -85,3 +85,17 @@ func (m PermissionModel) AddForUser(userID int64, codes ...string) error {
 	_, err := m.DB.ExecContext(ctx, query, userID, pq.Array(codes))
 	return err
 }
+
+func (m PermissionModel) AddPermission(code string) error {
+    query := `
+        INSERT INTO permissions (code)
+        SELECT $1
+        WHERE NOT EXISTS (SELECT 1 FROM permissions WHERE code = $1)
+    `
+
+    ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+    defer cancel()
+
+    _, err := m.DB.ExecContext(ctx, query, code)
+    return err
+}

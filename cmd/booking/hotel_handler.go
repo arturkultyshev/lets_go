@@ -8,6 +8,12 @@ import (
 )
 
 func (app *application) createHotelHandler(w http.ResponseWriter, r *http.Request) {
+	userID, err := app.getIDFromHeader(r)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	var input struct {
 		Name           string `json:"name"`
 		Country        string `json:"country"`
@@ -19,7 +25,7 @@ func (app *application) createHotelHandler(w http.ResponseWriter, r *http.Reques
 		AdditionalInfo string `json:"additional_info,omitempty"`
 	}
 
-	err := app.readJSON(w, r, &input)
+	err = app.readJSON(w, r, &input)
 	if err != nil {
 		app.errorResponse(w, r, http.StatusBadRequest, "Invalid request payload")
 		return
@@ -40,6 +46,15 @@ func (app *application) createHotelHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
+	}
+
+	actions := []string{"update", "delete"}
+	for _, action := range actions {
+		err = app.addPermissionAndAssignToUser(userID, int64(hotels.Id), "hotel", action)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
 	}
 
 	app.writeJSON(w, http.StatusCreated, envelope{"hotel": hotels}, nil)

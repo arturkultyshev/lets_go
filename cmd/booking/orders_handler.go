@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
 func (app *application) createOrderHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		UserId         int       `json:"userid"`
 		HotelId        int       `json:"hotelid"`
 		StartDate      time.Time `json:"start_date"`
 		EndDate        time.Time `json:"end_date"`
@@ -22,8 +22,26 @@ func (app *application) createOrderHandler(w http.ResponseWriter, r *http.Reques
 		app.errorResponse(w, r, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+
+	tokenStr := r.Header.Get("Authorization")
+	if tokenStr == "" {
+		app.errorResponse(w, r, http.StatusUnauthorized, "Authorization header missing")
+		return
+	}
+
+	// Remove the "Bearer " prefix from the token string
+	if len(tokenStr) > 7 && strings.ToUpper(tokenStr[0:7]) == "BEARER " {
+		tokenStr = tokenStr[7:]
+	}
+
+	userID, err := app.models.Tokens.GetUserIDFromToken(tokenStr)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	order := &model.Orders{
-		UserId:         input.UserId,
+		UserId:         int(userID),
 		HotelId:        input.HotelId,
 		StartDate:      input.StartDate,
 		EndDate:        input.EndDate,
@@ -37,17 +55,27 @@ func (app *application) createOrderHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	actions := []string{"read", "update", "delete"}
+
+	for _, action := range actions {
+		err = app.addPermissionAndAssignToUser(userID, int64(order.Id), "order", action)
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+	}
+
 	app.writeJSON(w, http.StatusCreated, envelope{"order": order}, nil)
 }
 
 func (app *application) getOrdersHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.readIDParam(r)
+	userID, err := app.getIDFromHeader(r)
 	if err != nil {
-		app.notFoundResponse(w, r)
+		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	orders, err := app.models.Orders.GetOrders(id)
+	orders, err := app.models.Orders.GetOrders(userID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

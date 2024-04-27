@@ -122,6 +122,27 @@ func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error
 	return token, nil
 }
 
+func (m TokenModel) GetUserIDFromToken(tokenStr string) (int64, error) {
+	// Generate a SHA-256 hash of the plaintext token string.
+	hash := sha256.Sum256([]byte(tokenStr))
+
+	query := `
+        SELECT user_id FROM tokens
+        WHERE hash = $1
+    `
+
+	var userID int64
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, hash[:]).Scan(&userID)
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
+}
+
 func ValidateTokenPlaintext(v *validator.Validator, tokenPlaintext string) {
 	v.Check(tokenPlaintext != "", "token", "must be provided")
 	v.Check(len(tokenPlaintext) == 26, "token", "must be 26 bytes long")

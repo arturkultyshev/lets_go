@@ -109,9 +109,9 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 	return app.requireAuthenticatedUser(fn)
 }
 
-func (app *application) requirePermissions(permission string, next http.HandlerFunc) http.HandlerFunc {
+func (app *application) requirePermissions(code string, next http.HandlerFunc) http.HandlerFunc {
 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Extract the user ID from the Authorization header
+		// Extract the user ID from the request context.
 		userID, err := app.getIDFromHeader(r)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
@@ -119,19 +119,15 @@ func (app *application) requirePermissions(permission string, next http.HandlerF
 		}
 
 		// Split the permission string into a slice
-		parts := strings.Split(permission, ":")
+		parts := strings.Split(code, ":")
 
 		// Append the user ID to the slice
-		parts = []string{parts[0], strconv.FormatInt(userID, 10), parts[1]}
+		if parts[1] != "write" {
+			parts = []string{parts[0], strconv.FormatInt(userID, 10), parts[1]}
+			code = strings.Join(parts, ":")
+		}
 
-		// Join the slice back into a string
-		code := strings.Join(parts, ":")
-
-		// Retrieve the user from the request context.
-		user := app.contextGetUser(r)
-
-		// Get the slice of permission for the user
-		permissions, err := app.models.Permissions.GetAllForUser(user.ID)
+		permissions, err := app.models.Permissions.GetAllForUser(userID)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return

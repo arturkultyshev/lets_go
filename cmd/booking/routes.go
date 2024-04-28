@@ -44,7 +44,7 @@ func (app *application) routes() http.Handler {
 	// Create a new order
 	orders1.HandleFunc("", app.requirePermissions("order:write", app.createOrderHandler)).Methods("POST")
 	// Get orders by user
-	orders1.HandleFunc("", app.requirePermissions("order:read", app.getOrdersHandler)).Methods("GET")
+	orders1.HandleFunc("", app.getOrdersHandler).Methods("GET")
 	// Get a specific order, update a specific order, and delete a specific order
 	orders1.HandleFunc("/{id:[0-9]+}", app.requirePermissions("order:update", app.updateOrderHandler)).Methods("PUT")
 	orders1.HandleFunc("/{id:[0-9]+}", app.requirePermissions("order:delete", app.deleteOrderHandler)).Methods("DELETE")

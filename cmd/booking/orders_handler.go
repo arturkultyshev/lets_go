@@ -58,7 +58,7 @@ func (app *application) createOrderHandler(w http.ResponseWriter, r *http.Reques
 	actions := []string{"read", "update", "delete"}
 
 	for _, action := range actions {
-		err = app.addPermissionAndAssignToUser(userID, int64(userID), "order", action)
+		err = app.addPermissionAndAssignToUser(userID, int64(order.Id), "order", action)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
 			return

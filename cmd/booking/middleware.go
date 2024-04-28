@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -112,6 +113,11 @@ func (app *application) requireActivatedUser(next http.HandlerFunc) http.Handler
 func (app *application) requirePermissions(code string, next http.HandlerFunc) http.HandlerFunc {
 	fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Extract the user ID from the request context.
+		code := code
+		id, err := app.readIDParam(r)
+		if err != nil {
+			id = 0
+		}
 		userID, err := app.getIDFromHeader(r)
 		if err != nil {
 			app.serverErrorResponse(w, r, err)
@@ -121,9 +127,10 @@ func (app *application) requirePermissions(code string, next http.HandlerFunc) h
 		// Split the permission string into a slice
 		parts := strings.Split(code, ":")
 
+		fmt.Println(parts)
 		// Append the user ID to the slice
 		if parts[1] != "write" {
-			parts = []string{parts[0], strconv.FormatInt(userID, 10), parts[1]}
+			parts = []string{parts[0], strconv.FormatInt(int64(id), 10), parts[1]}
 			code = strings.Join(parts, ":")
 		}
 
